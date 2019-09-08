@@ -1,0 +1,16 @@
+{
+  "name": "sn-product-serv",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./lib/index",
+  "devDependencies": {
+    "eslint": "^6.3.0"
+  },
+  "dependencies": {
+    "ioredis": "^4.14.0"
+  },
+  "scripts": {
+    "dev": "npx supervisor scripts/start.js",
+    "start": "node scripts/start.js"
+  }
+}
