@@ -18,7 +18,10 @@ module.exports = function start() {
             port: 3006
         },
         serviceClasses: [
+            require('./CategoryService'),
+            require('./BrandService'),
             require('./ProductService'),
+            require('./FormulaService'),
         ]
     })
         .start();
