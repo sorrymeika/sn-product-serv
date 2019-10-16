@@ -22,6 +22,7 @@ module.exports = function start() {
             require('./BrandService'),
             require('./ProductService'),
             require('./FormulaService'),
+            require('./SearchService'),
         ]
     })
         .start();

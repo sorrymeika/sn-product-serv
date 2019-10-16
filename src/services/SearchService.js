@@ -1,10 +1,9 @@
 const { Service } = require('sonorpc');
-const { PARAM_ERROR } = require('../constants/error');
 
 class SearchService extends Service {
     async searchByConditions({
         keywords,
-        sellerId,
+        sellerIds,
         types,
         cates,
         brandName,
@@ -19,9 +18,8 @@ class SearchService extends Service {
         let where = '(a.status=1 or a.status=3)';
         const start = Math.max(0, pageIndex - 1) * pageSize;
 
-        if (typeof sellerId === 'number') {
-            where += ' and a.sellerId=@p' + args.length;
-            args.push(sellerId);
+        if (Array.isArray(sellerIds) && !sellerIds.some((id) => (typeof id === 'number'))) {
+            where += ' and a.sellerId in (' + sellerIds.join(',') + ')';
         }
 
         if (keywords) {
@@ -100,7 +98,7 @@ class SearchService extends Service {
                 c3.name as subSubCateName,
                 t1.name as typeName,
                 t2.name as subTypeName,
-                d.price,d.maxPrice
+                d.price,d.price as minPrice,d.maxPrice
                 from spu a 
                     join spuBasic b on a.id=b.spuId
                     left join brand c on b.brandId=c.id
@@ -119,9 +117,10 @@ class SearchService extends Service {
 
     async searchByFormula(formulaId, pageIndex, pageSize) {
         const rows = await this.ctx.mysql.query('select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where id=@p0', [formulaId]);
+
         if (rows && rows.length) {
-            const { sellerId, cates, types, keywords, brandName, minSales, maxSales, minPrice, maxPrice } = rows[0];
-            const cateArray = cates.split(',')
+            const { cates, types, keywords, brandName, minSales, maxSales, minPrice, maxPrice } = rows[0];
+            const cateArray = (cates || '').split(',')
                 .map((cateStr) => {
                     const [cateId, subCateId, subSubCateId] = cateStr.split('-');
                     return {
@@ -130,7 +129,7 @@ class SearchService extends Service {
                         subSubCateId: Number(subSubCateId),
                     };
                 });
-            const typeArray = types.split(',')
+            const typeArray = (types || '').split(',')
                 .map((typeStr) => {
                     const [type, subType] = typeStr.split('-');
                     return {
@@ -143,7 +142,6 @@ class SearchService extends Service {
                 types: typeArray,
                 cates: cateArray,
                 keywords,
-                sellerId,
                 brandName,
                 minSales,
                 maxSales,

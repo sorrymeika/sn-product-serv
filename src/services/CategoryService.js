@@ -49,6 +49,27 @@ class CategoryService extends Service {
         return { success: true, code: 0, data: rows };
     }
 
+    async listSpuPropDefinitionsWithColumns(categoryId, columns = 'least') {
+        if (typeof categoryId !== "number") {
+            return PARAM_ERROR;
+        }
+
+        let selectColumns;
+
+        if (columns == 'least' || columns == 'needful') {
+            selectColumns = 'id,label,field';
+        } else if (columns == '*' || columns == 'all') {
+            selectColumns = '*';
+        } else if (!Array.isArray(columns) || columns.some(columnName => !this.ctx.mysql.validateName(columnName))) {
+            return PARAM_ERROR;
+        } else {
+            selectColumns = columns.join(',');
+        }
+
+        const rows = await this.ctx.mysql.query('select ' + selectColumns + ' from spuPropDefinition where status=1 and categoryId=@p0', [categoryId]);
+        return { success: true, code: 0, data: rows };
+    }
+
     async addSpuPropDefinition({ categoryId, type, inputType, label, field, rules, inputProps, options }) {
         if (typeof categoryId !== "number") {
             return PARAM_ERROR;

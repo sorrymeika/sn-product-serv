@@ -2,6 +2,7 @@ const { Service } = require('sonorpc');
 const { PARAM_ERROR, SKU_CODE_EXISTS_ERROR } = require('../constants/error');
 
 class ProductService extends Service {
+    // 后台接口
     async listSpuTypes() {
         const rows = await this.ctx.mysql.query('select id,name,pid from spuType');
         return { success: true, code: 0, data: rows };
@@ -16,11 +17,11 @@ class ProductService extends Service {
                 a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,
                 b.subtitle,b.brandId,b.barcode,b.company,b.pictures,b.video,b.specOnTitle,b.props,
                 c.name as brandName,
-                d.price,d.minPrice
+                d.price,d.price as minPrice,d.maxPrice
                 from spu a 
                     join spuBasic b on a.id=b.spuId
                     left join brand c on b.brandId=c.id
-                    left join (select max(price) as price,min(price) as minPrice,spuId from sku group by spuId) d on a.id=d.spuId
+                    left join (select min(price) as price,max(price) as maxPrice,spuId from sku group by spuId) d on a.id=d.spuId
                 where a.id in (${spuIds.join(',')})`,
         );
 
@@ -105,7 +106,7 @@ class ProductService extends Service {
                 c3.name as subSubCateName,
                 t1.name as typeName,
                 t2.name as subTypeName,
-                d.price,d.minPrice
+                d.price,d.price as minPrice,d.maxPrice
                 from spu a 
                     join spuBasic b on a.id=b.spuId
                     left join brand c on b.brandId=c.id
@@ -114,7 +115,7 @@ class ProductService extends Service {
                     left join category c3 on a.subSubCateId=c3.id
                     left join spuType t1 on a.type=t1.id
                     left join spuType t2 on a.subType=t2.id
-                    left join (select max(price) as price,min(price) as minPrice,spuId from sku group by spuId) d on a.id=d.spuId
+                    left join (select min(price) as price,max(price) as maxPrice,spuId from sku group by spuId) d on a.id=d.spuId
                 where ` + where + ' limit ' + start + ',' + pageSize,
             args
         );
@@ -268,11 +269,6 @@ class ProductService extends Service {
         });
     }
 
-    async listAllSkusBySpuId(spuId) {
-        const rows = await this.ctx.mysql.query('select id,spuId,code,status,price,kgWeight,picture,stockType,stock,skuPropVal0,skuPropVal1,skuPropVal2,skuPropVal3,skuPropVal4 from sku where spuId=@p0 and status!=0', [spuId]);
-        return { success: true, code: 0, data: rows };
-    }
-
     async addSku({ spuId, code, price, kgWeight, picture, stockType, stock, skuPropVal0, skuPropVal1, skuPropVal2, skuPropVal3, skuPropVal4 }) {
         if (!code || !spuId) return PARAM_ERROR;
 
@@ -323,6 +319,45 @@ class ProductService extends Service {
         await this.ctx.mysql.update('sku', data, { id });
 
         return { success: true, code: 0 };
+    }
+
+    // 前台接口
+    async getBasicById(id) {
+        const rows = await this.ctx.mysql.query(
+            `select a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,
+                b.subtitle,b.brandId,b.barcode,b.company,b.pictures,b.video,b.specOnTitle,b.minBuyNum,b.maxBuyNum,b.skuPropKey0,b.skuPropKey1,b.skuPropKey2,b.skuPropKey3,b.skuPropKey4,b.props,
+                c.name as brandName
+                from spu a 
+                    left join spuBasic b on a.id=b.spuId
+                    left join brand c on b.brandId=c.id
+                where a.id=@p0 and a.status!=0`,
+            [id]
+        );
+
+        return { success: true, code: 0, data: rows && rows.length > 0 ? rows[0] : null };
+    }
+
+    async getDetailById(spuId) {
+        const rows = await this.ctx.mysql.query(
+            'select detailVideo,content from spuDetail where spuId=@p0', [spuId]
+        );
+        return { success: true, code: 0, data: rows && rows.length > 0 ? rows[0] : null };
+    }
+
+    async listAllSkusBySpuId(spuId) {
+        const rows = await this.ctx.mysql.query('select id,spuId,code,status,price,kgWeight,picture,stockType,stock,skuPropVal0,skuPropVal1,skuPropVal2,skuPropVal3,skuPropVal4 from sku where spuId=@p0 and status!=0', [spuId]);
+        return { success: true, code: 0, data: rows };
+    }
+
+    async getBuySkusByIds(skuIds) {
+        const rows = await this.ctx.mysql.query(
+            `select sku.id as skuId,spuId,code,sku.status as skuStatus,price,kgWeight,picture,stockType,stock,skuPropVal0,skuPropVal1,skuPropVal2,skuPropVal3,skuPropVal4,
+                spu.sellerId,spu.title,spu.status as spuStatus
+                from sku
+                inner join spu on sku.spuId=spu.id
+            where sku.id in (${skuIds.join(',')}) and sku.status!=0 and spu.status!=0`
+        );
+        return { success: true, code: 0, data: rows };
     }
 }
 

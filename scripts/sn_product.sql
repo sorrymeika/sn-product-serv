@@ -117,8 +117,8 @@ create table spu (
     title varchar(200),
     status int(2), -- 商品状态: enum { 0: '虚拟删除', 1: '上架', 2: '下架', 3: '新建' }
     approvalStatus int(1), -- 审核状态: enum { 0: '不通过', 1: '审核通过', 2: '审核中', 3: '未提交' }
-    cateId int(9),
     sales int(9), -- 销量
+    cateId int(9),
     subCateId int(9),
     subSubCateId int(9),
     type int(9),
@@ -177,7 +177,7 @@ create table sku (
 create table tag (
     id int(10) primary key auto_increment,
     name varchar(30),
-    type int(1), -- 标签类型 enum { 1: '展示类标签', 2: '服务类标签', 3: '促销类标签' }
+    type int(1), -- 标签类型 enum { 1: '展示类标签', 2: '服务类标签', 3: '促销类标签', 4: '逻辑标签' }
     relId int(11),
     sellerId int(10),
     startDt timestamp,
