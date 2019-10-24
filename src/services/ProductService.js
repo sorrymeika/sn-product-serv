@@ -359,6 +359,17 @@ class ProductService extends Service {
         );
         return { success: true, code: 0, data: rows };
     }
+
+    async getSkuStatusByIds(skuIds) {
+        const rows = await this.ctx.mysql.query(
+            `select sku.id as skuId,sku.status as skuStatus,
+                spu.status as spuStatus
+                from sku
+                inner join spu on sku.spuId=spu.id
+            where sku.id in (${skuIds.join(',')}) and sku.status!=0 and spu.status!=0`
+        );
+        return { success: true, code: 0, data: rows };
+    }
 }
 
 module.exports = ProductService;
