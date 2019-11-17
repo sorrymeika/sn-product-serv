@@ -15,6 +15,9 @@ SELECT User, Host FROM mysql.user;
 show grants for 'dev'@'localhost';
 
 
+-- 展示所有数据库
+show databases;
+
 -- 创建数据库
 create database if not exists sn_product;
 
@@ -24,8 +27,6 @@ grant ALL on sn_product.* to 'dev'@'localhost';
 -- 使用数据库
 use sn_product;
 
--- 展示所有数据库
-show databases;
 
 -- 展示所有表
 -- show tables;
@@ -64,7 +65,7 @@ create table fdCategory (
     pid int(9),
     sellerId int(10),
     sort int(5),
-    level int(1) --最大三级
+    level int(1) -- 最大三级
 );
 
 -- 商品品牌
