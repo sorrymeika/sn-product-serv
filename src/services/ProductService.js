@@ -207,7 +207,7 @@ class ProductService extends Service {
                 spuId: id,
             });
 
-            return { success: true, code: 0, id: res };
+            return { success: true, code: 0, id };
         });
     }
 
