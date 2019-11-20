@@ -40,23 +40,14 @@ class CategoryService extends Service {
         return { success: true, data: res };
     }
 
-    async listSpuPropDefinitions(categoryId) {
-        if (typeof categoryId !== "number") {
-            return PARAM_ERROR;
-        }
-
-        const rows = await this.ctx.mysql.query('select id,categoryId,type,inputType,label,field,rules,inputProps,options from spuPropDefinition where status=1 and categoryId=@p0', [categoryId]);
-        return { success: true, code: 0, data: rows };
-    }
-
-    async listSpuPropDefinitionsWithColumns(categoryId, columns = 'least') {
+    async getSpuPropDefinitions(categoryId, columns = 'least') {
         if (typeof categoryId !== "number") {
             return PARAM_ERROR;
         }
 
         let selectColumns;
 
-        if (columns == 'least' || columns == 'needful') {
+        if (columns == 'least') {
             selectColumns = 'id,label,field';
         } else if (columns == '*' || columns == 'all') {
             selectColumns = '*';

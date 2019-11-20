@@ -116,7 +116,7 @@ insert into spuType (id,name,pid) values (3002,'非处方药',30);
 create table spu (
     id int(12) primary key auto_increment,
     title varchar(200),
-    status int(2), -- 商品状态: enum { 0: '虚拟删除', 1: '上架', 2: '下架', 3: '新建' }
+    status int(2), -- 商品状态: enum { 0: '虚拟删除', 1: '上架', 2: '新建', 3: '下架' }
     approvalStatus int(1), -- 审核状态: enum { 0: '不通过', 1: '审核通过', 2: '审核中', 3: '未提交' }
     sales int(9), -- 销量
     cateId int(9),
@@ -162,7 +162,7 @@ create table sku (
     id int(14) primary key auto_increment,
     spuId int(12),
     code varchar(20),
-    status int(2), -- enum { 0: '虚拟删除', 1: '新建', 2: '上架', 3: '下架' }
+    status int(2), -- enum { 0: '虚拟删除', 1: '上架', 2: '新建', 3: '下架' }
     price decimal(12,2),
     kgWeight decimal(12,3),
     picture varchar(20),

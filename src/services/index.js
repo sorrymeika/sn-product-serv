@@ -10,20 +10,20 @@ const ctx = {
 };
 
 module.exports = function start() {
-    return createProvider({
+    const rpcProvider = createProvider({
         name: 'product',
         ctx,
         port: 3008,
         registry: {
             port: 3006
         },
-        serviceClasses: [
+        services: [
             require('./CategoryService'),
             require('./BrandService'),
             require('./ProductService'),
             require('./FormulaService'),
             require('./SearchService'),
         ]
-    })
-        .start();
+    });
+    rpcProvider.start();
 };
