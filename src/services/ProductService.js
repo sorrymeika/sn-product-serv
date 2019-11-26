@@ -128,7 +128,7 @@ class ProductService extends Service {
         try {
             const rows = await connection.query(
                 `select 
-                    a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,
+                    a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.searchTags,a.comments,a.status,
                     b.subtitle,b.brandId,b.barcode,b.company,b.pictures,b.video,b.specOnTitle,b.minBuyNum,b.maxBuyNum,b.skuPropKey0,b.skuPropKey1,b.skuPropKey2,b.skuPropKey3,b.skuPropKey4,b.props,
                     c.detailVideo,c.content 
                 from spu a 
@@ -175,6 +175,7 @@ class ProductService extends Service {
         type,
         subType,
         sellerId,
+        searchTags,
         creator,
         subtitle,
         brandId,
@@ -203,6 +204,9 @@ class ProductService extends Service {
                 type,
                 subType,
                 sellerId,
+                searchTags,
+                sortWeight: 0,
+                comments: 0,
                 creator,
                 createDt: new Date()
             });
@@ -242,6 +246,7 @@ class ProductService extends Service {
         id,
         title,
         sellerId,
+        searchTags,
         modifyer,
         subtitle,
         brandId,
@@ -267,6 +272,7 @@ class ProductService extends Service {
             await connection.update('spu', {
                 title,
                 sellerId,
+                searchTags,
                 modifyer,
                 modifyDt: new Date()
             }, { id });
@@ -423,17 +429,36 @@ class ProductService extends Service {
         return { success: true, code: 0 };
     }
 
+    async deleteSku(id) {
+        const [sku] = await this.ctx.mysql.query('select status,spuId from sku where id=@p0', [id]);
+        if (!sku) {
+            return { success: true, code: -1000, message: 'SKU不存在!' };
+        }
+
+        return await this.ctx.mysql.useTransaction(async (conn) => {
+            if (sku.status == 1) {
+                const [skus] = await conn.query('select count(1) as total from sku where spuId=@p0 and status=1 and id!=@p1', [sku.spuId, id]);
+                if (skus.total == 0) {
+                    await conn.update('spu', { status: 3 }, { id: sku.spuId });
+                }
+            }
+            await conn.update('sku', { status: 0 }, { id });
+            return { success: true, code: 0 };
+        });
+    }
+
     /**
      * SKU商品上架
      * @param {number} skuId 商品ID
      */
     async shelveSku(skuId) {
-        const rows = await this.ctx.mysql.query('select status from sku where id=@p0', [skuId]);
+        const rows = await this.ctx.mysql.query('select status,spuId from sku where id=@p0', [skuId]);
         if (!rows[0]) {
             return { success: true, code: -1000, message: 'SKU不存在!' };
         } else if (rows[0].status == 0) {
             return { success: true, code: -1000, message: 'SKU已删除!' };
         }
+
         await this.ctx.mysql.update("sku", { status: 1 }, { id: skuId });
         return { success: true, code: 0 };
     }
@@ -443,14 +468,22 @@ class ProductService extends Service {
      * @param {*} skuId 商品ID
      */
     async pullSkuFromShelves(skuId) {
-        const rows = await this.ctx.mysql.query('select status from sku where id=@p0', [skuId]);
-        if (!rows[0]) {
+        const [sku] = await this.ctx.mysql.query('select status,spuId from sku where id=@p0', [skuId]);
+        if (!sku) {
             return { success: true, code: -1000, message: '商品不存在!' };
-        } else if (rows[0].status != 1) {
+        } else if (sku.status != 1) {
             return { success: true, code: -1000, message: '商品状态错误!' };
         }
-        await this.ctx.mysql.update("sku", { status: 3 }, { id: skuId });
-        return { success: true, code: 0 };
+
+        return await this.ctx.mysql.useTransaction(async (conn) => {
+            const [skus] = await conn.query('select count(1) as total from sku where spuId=@p0 and status=1 and id!=@p1', [sku.spuId, skuId]);
+            if (skus.total == 0) {
+                await conn.update('spu', { status: 3 }, { id: sku.spuId });
+            }
+            await conn.update("sku", { status: 3 }, { id: skuId });
+
+            return { success: true, code: 0 };
+        });
     }
 }
 

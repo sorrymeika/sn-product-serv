@@ -18,6 +18,7 @@ module.exports = function start() {
             port: 3006
         },
         services: [
+            require('./FdCategoryService'),
             require('./CategoryService'),
             require('./BrandService'),
             require('./ProductService'),

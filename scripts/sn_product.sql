@@ -57,17 +57,6 @@ create table spuPropDefinition (
     status int(1) -- 状态 enum { 1: '有效', 0: '无效' }
 );
 
--- 商品前台类目
-create table fdCategory (
-    id int(9) primary key auto_increment,
-    name varchar(30),
-    picture varchar(20),
-    pid int(9),
-    sellerId int(10),
-    sort int(5),
-    level int(1) -- 最大三级
-);
-
 -- 商品品牌
 create table brand (
     id int(11) primary key auto_increment,
@@ -116,9 +105,14 @@ insert into spuType (id,name,pid) values (3002,'非处方药',30);
 create table spu (
     id int(12) primary key auto_increment,
     title varchar(200),
+    searchTags varchar(100), -- 搜索标签，`,`号隔开
+    sortWeight int(12), -- 排序权重，每用户每天点击+1，购买+100，好评+100，差评-100
     status int(2), -- 商品状态: enum { 0: '虚拟删除', 1: '上架', 2: '新建', 3: '下架' }
     approvalStatus int(1), -- 审核状态: enum { 0: '不通过', 1: '审核通过', 2: '审核中', 3: '未提交' }
     sales int(9), -- 销量
+    comments int(9), -- 评论数
+    minPrice decimal(12,2),
+    maxPrice decimal(12,2),
     cateId int(9),
     subCateId int(9),
     subSubCateId int(9),
@@ -215,4 +209,22 @@ create table formula (
     maxSales int(10), -- 最大销量
     minPrice decimal(12,2), -- 最小价格
     maxPrice decimal(12,2) -- 最大价格
+);
+
+-- 商品前台类目
+create table fdCategory (
+    id int(9) primary key auto_increment,
+    name varchar(30),
+    picture varchar(20),
+    pid int(9),
+    sellerId int(10),
+    sort int(5),
+    level int(1), -- 从1级开始最大三级
+    linkType int(1), -- 链接类型: enum { 0: '关键字搜索', 1: '链接跳转', 2: '选品规则搜索' }
+    link varchar(400), -- 链接或关键字
+    formulaId int(10), -- 选品规则ID
+    creator varchar(30), -- 创建人
+    createDt timestamp, -- 创建时间
+    modifyer varchar(30), -- 修改人
+    modifyDt timestamp -- 修改时间
 );

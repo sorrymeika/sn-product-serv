@@ -1,5 +1,15 @@
 const { Service } = require('sonorpc');
 
+const ORDER_BY = {
+    SALES_ASC: 1,
+    SALES_DESC: 2,
+    PRICE_ASC: 3,
+    PRICE_DESC: 4,
+    CREATE_DT_ASC: 5,
+    COMMENTS_NUM_DESC: 6,
+};
+
+
 class SearchService extends Service {
     async searchByConditions({
         keywords,
@@ -11,11 +21,12 @@ class SearchService extends Service {
         maxSales,
         minPrice,
         maxPrice,
+        orderBy,
         pageIndex,
         pageSize
     }) {
         const args = [];
-        let where = '(a.status=1 or a.status=3)';
+        let where = 'a.status=1';
         const start = Math.max(0, pageIndex - 1) * pageSize;
 
         if (Array.isArray(sellerIds) && !sellerIds.some((id) => (typeof id === 'number'))) {
@@ -79,18 +90,34 @@ class SearchService extends Service {
         }
 
         if (minPrice) {
-            where += ' and a.maxPrice>=@p' + args.length;
+            where += ' and d.maxPrice>=@p' + args.length;
             args.push(minPrice);
         }
 
         if (maxPrice) {
-            where += ' and d.price<=@p' + args.length;
+            where += ' and d.minPrice<=@p' + args.length;
             args.push(maxPrice);
+        }
+
+        let orderBySQL;
+
+        if (orderBy == ORDER_BY.SALES_ASC) {
+            orderBySQL = "a.sales asc";
+        } else if (orderBy == ORDER_BY.SALES_DESC) {
+            orderBySQL = "a.sales desc";
+        } else if (orderBy == ORDER_BY.PRICE_ASC) {
+            orderBySQL = "d.minPrice asc";
+        } else if (orderBy == ORDER_BY.PRICE_DESC) {
+            orderBySQL = "d.maxPrice desc";
+        } else if (orderBy == ORDER_BY.CREATE_DT_ASC) {
+            orderBySQL = "a.createDt desc";
+        } else {
+            orderBySQL = "a.sortWeight desc";
         }
 
         const rows = await this.ctx.mysql.query(
             `select 
-                a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,
+                a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,a.comments,
                 b.subtitle,b.brandId,b.barcode,b.company,b.pictures,b.video,b.specOnTitle,b.props,
                 c.name as brandName,
                 c1.name as cateName,
@@ -98,7 +125,7 @@ class SearchService extends Service {
                 c3.name as subSubCateName,
                 t1.name as typeName,
                 t2.name as subTypeName,
-                d.price,d.price as minPrice,d.maxPrice
+                d.minPrice,d.minPrice as price,d.maxPrice
                 from spu a 
                     join spuBasic b on a.id=b.spuId
                     left join brand c on b.brandId=c.id
@@ -107,8 +134,8 @@ class SearchService extends Service {
                     left join category c3 on a.subSubCateId=c3.id
                     left join spuType t1 on a.type=t1.id
                     left join spuType t2 on a.subType=t2.id
-                    left join (select max(price) as maxPrice,min(price) as price,spuId from sku group by spuId) d on a.id=d.spuId
-                where ` + where + ' limit ' + start + ',' + pageSize,
+                    left join (select max(price) as maxPrice,min(price) as minPrice,spuId from sku group by spuId) d on a.id=d.spuId
+                where ` + where + 'order by ' + orderBySQL + ' limit ' + start + ',' + pageSize,
             args
         );
 
