@@ -7,7 +7,7 @@ class FdCategoryService extends Service {
             return { ...PARAM_ERROR, message: '必须传入sellerId' };
         }
 
-        const rows = await this.ctx.mysql.query('select id,name,level,pid,sort from fdCategory where sellerId=@p0 and level=1 order by sort desc', [sellerId]);
+        const rows = await this.app.mysql.query('select id,name,level,pid,sort from fdCategory where sellerId=@p0 and level=1 order by sort desc', [sellerId]);
 
         return { success: true, data: rows };
     }
@@ -17,7 +17,7 @@ class FdCategoryService extends Service {
             return { ...PARAM_ERROR, message: '必须传入pid' };
         }
 
-        const conn = await this.ctx.mysql.connect();
+        const conn = await this.app.mysql.connect();
         try {
             const rows = await conn.query('select id,name,level,pid,sort from fdCategory where pid=@p0 order by sort desc', [pid]);
             if (rows.length) {
@@ -39,7 +39,7 @@ class FdCategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const res = await this.ctx.mysql.insert('fdCategory', {
+        const res = await this.app.mysql.insert('fdCategory', {
             sellerId,
             name,
             picture,
@@ -60,7 +60,7 @@ class FdCategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const res = await this.ctx.mysql.update('fdCategory', {
+        const res = await this.app.mysql.update('fdCategory', {
             name,
             sort,
             picture,
@@ -74,12 +74,12 @@ class FdCategoryService extends Service {
     }
 
     async deleteById(id) {
-        const children = await this.ctx.mysql.query('select id from fdCategory where pid=@p0 limit 1', [id]);
+        const children = await this.app.mysql.query('select id from fdCategory where pid=@p0 limit 1', [id]);
         if (children.length) {
             return { success: false, message: '不能删除有子类的类目！' };
         }
 
-        await this.ctx.mysql.query('delete from fdCategory where id=@p0', [id]);
+        await this.app.mysql.query('delete from fdCategory where id=@p0', [id]);
         return { success: true };
     }
 }

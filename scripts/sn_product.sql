@@ -160,8 +160,9 @@ create table sku (
     price decimal(12,2),
     kgWeight decimal(12,3),
     picture varchar(20),
-    stockType int(1), -- enum { 0: '无限库存', 1: '从库存中心同步', 2: '直接设置' }
-    stock int(10),
+    stockType int(1), -- enum { 0: '无限库存', 1: '从库存中心同步' }
+    stock int(10), -- 同步后的库存
+    syncStockDetailId int(14), -- 库存更新ID(最后一次从库存中心同步库存的Id，下次同步只要计算大于该Id的库存)
     skuPropVal0 varchar(100),
     skuPropVal1 varchar(100),
     skuPropVal2 varchar(100),

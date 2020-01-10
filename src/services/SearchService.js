@@ -5,7 +5,7 @@ const ORDER_BY = {
     SALES_DESC: 2,
     PRICE_ASC: 3,
     PRICE_DESC: 4,
-    CREATE_DT_ASC: 5,
+    CREATE_DT_DESC: 5,
     COMMENTS_NUM_DESC: 6,
 };
 
@@ -109,13 +109,13 @@ class SearchService extends Service {
             orderBySQL = "d.minPrice asc";
         } else if (orderBy == ORDER_BY.PRICE_DESC) {
             orderBySQL = "d.maxPrice desc";
-        } else if (orderBy == ORDER_BY.CREATE_DT_ASC) {
+        } else if (orderBy == ORDER_BY.CREATE_DT_DESC) {
             orderBySQL = "a.createDt desc";
         } else {
             orderBySQL = "a.sortWeight desc";
         }
 
-        const rows = await this.ctx.mysql.query(
+        const rows = await this.app.mysql.query(
             `select 
                 a.id,a.title,a.sales,a.cateId,a.subCateId,a.subSubCateId,a.type,a.subType,a.sellerId,a.status,a.comments,
                 b.subtitle,b.brandId,b.barcode,b.company,b.pictures,b.video,b.specOnTitle,b.props,
@@ -135,7 +135,7 @@ class SearchService extends Service {
                     left join spuType t1 on a.type=t1.id
                     left join spuType t2 on a.subType=t2.id
                     left join (select max(price) as maxPrice,min(price) as minPrice,spuId from sku group by spuId) d on a.id=d.spuId
-                where ` + where + 'order by ' + orderBySQL + ' limit ' + start + ',' + pageSize,
+                where ` + where + ' order by ' + orderBySQL + ' limit ' + start + ',' + pageSize,
             args
         );
 
@@ -143,7 +143,7 @@ class SearchService extends Service {
     }
 
     async searchByFormula(formulaId, pageIndex, pageSize) {
-        const rows = await this.ctx.mysql.query('select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where id=@p0', [formulaId]);
+        const rows = await this.app.mysql.query('select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where id=@p0', [formulaId]);
 
         if (rows && rows.length) {
             const { cates, types, keywords, brandName, minSales, maxSales, minPrice, maxPrice } = rows[0];

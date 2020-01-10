@@ -36,7 +36,7 @@ class BrandService extends Service {
             args.push(hasBrandAuth);
         }
 
-        const conn = await this.ctx.mysql.connect();
+        const conn = await this.app.mysql.connect();
 
         try {
             const rows = await conn.query('select id,name,logo,status,sellerId,brandType,note,hasBrandAuth from brand where ' + where + ' limit ' + start + ',' + pageSize, args);
@@ -49,7 +49,7 @@ class BrandService extends Service {
     }
 
     async getBrandById(id) {
-        const rows = await this.ctx.mysql.query('select id,name,logo,status,sellerId,brandType,countryId,note,hasBrandAuth,brandExp,trademarkRegPic,brandAuthPic,inspectionReportPic,companyBLPic,prdLicencePic,approvalLicencePic,oemAgreementPic,oosBrandAuthPic,oosPurchaseInvoicePic from brand where id=@p0', [id]);
+        const rows = await this.app.mysql.query('select id,name,logo,status,sellerId,brandType,countryId,note,hasBrandAuth,brandExp,trademarkRegPic,brandAuthPic,inspectionReportPic,companyBLPic,prdLicencePic,approvalLicencePic,oemAgreementPic,oosBrandAuthPic,oosPurchaseInvoicePic from brand where id=@p0', [id]);
         return { success: true, code: 0, data: rows && rows[0] };
     }
 
@@ -73,7 +73,7 @@ class BrandService extends Service {
         oosPurchaseInvoicePic,
         creator
     }) {
-        const res = await this.ctx.mysql.insert('brand', {
+        const res = await this.app.mysql.insert('brand', {
             name,
             logo,
             status: 2,
@@ -119,7 +119,7 @@ class BrandService extends Service {
         oosPurchaseInvoicePic,
         modifyer
     }) {
-        const res = await this.ctx.mysql.update('brand', {
+        const res = await this.app.mysql.update('brand', {
             name,
             logo,
             countryId,

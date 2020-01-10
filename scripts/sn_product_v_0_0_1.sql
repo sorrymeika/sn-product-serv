@@ -22,3 +22,8 @@ alter table spu add comments int(10);
 
 update spu set sortWeight=0;
 update spu set comments=0;
+
+-- 2019-12-20
+alter table sku add syncStockDetailId int(14);
+update sku set syncStockDetailId=0;
+

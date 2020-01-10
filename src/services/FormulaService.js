@@ -21,7 +21,7 @@ class FormulaService extends Service {
             args.push(name);
         }
 
-        const rows = await this.ctx.mysql.query(
+        const rows = await this.app.mysql.query(
             `select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where ${where} limit ${start},${pageSize}`,
             args
         );
@@ -52,8 +52,8 @@ class FormulaService extends Service {
         }
 
         const [categoryRows, typeRows] = await Promise.all([
-            cateIds.length ? this.ctx.mysql.query(`select id,name from category where id in (${cateIds.join(',')})`) : [],
-            typeIds.length ? this.ctx.mysql.query(`select id,name from spuType where id in (${typeIds.join(',')})`) : []
+            cateIds.length ? this.app.mysql.query(`select id,name from category where id in (${cateIds.join(',')})`) : [],
+            typeIds.length ? this.app.mysql.query(`select id,name from spuType where id in (${typeIds.join(',')})`) : []
         ]);
 
         const tmp = {};
@@ -103,7 +103,7 @@ class FormulaService extends Service {
     }
 
     async getFormulaById(id) {
-        const rows = await this.ctx.mysql.query('select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where id=@p0', [id]);
+        const rows = await this.app.mysql.query('select id,name,tagIds,sellerId,cates,types,keywords,brandName,minSales,maxSales,minPrice,maxPrice from formula where id=@p0', [id]);
         return { success: true, code: 0, data: rows && rows[0] };
     }
 
@@ -120,7 +120,7 @@ class FormulaService extends Service {
         minPrice,
         maxPrice
     }) {
-        const res = await this.ctx.mysql.insert('formula', {
+        const res = await this.app.mysql.insert('formula', {
             name,
             tagIds,
             sellerId,
@@ -151,7 +151,7 @@ class FormulaService extends Service {
         minPrice,
         maxPrice
     }) {
-        const res = await this.ctx.mysql.update(`formula`, {
+        const res = await this.app.mysql.update(`formula`, {
             name,
             tagIds,
             sellerId,

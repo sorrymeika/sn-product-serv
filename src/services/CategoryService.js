@@ -7,7 +7,7 @@ class CategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const rows = await this.ctx.mysql.query('select id,name,level,creator from category where pid=@p0', [pid]);
+        const rows = await this.app.mysql.query('select id,name,level,creator from category where pid=@p0', [pid]);
         return { success: true, code: 0, data: rows };
     }
 
@@ -16,7 +16,7 @@ class CategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const res = await this.ctx.mysql.insert('category', {
+        const res = await this.app.mysql.insert('category', {
             name,
             pid,
             level,
@@ -31,7 +31,7 @@ class CategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const res = await this.ctx.mysql.query('update category set name={name},modifyer={modifyer},modifyDt={modifyDt} where id={id}', {
+        const res = await this.app.mysql.query('update category set name={name},modifyer={modifyer},modifyDt={modifyDt} where id={id}', {
             id,
             name,
             modifyer,
@@ -51,13 +51,13 @@ class CategoryService extends Service {
             selectColumns = 'id,label,field';
         } else if (columns == '*' || columns == 'all') {
             selectColumns = '*';
-        } else if (!Array.isArray(columns) || columns.some(columnName => !this.ctx.mysql.validateName(columnName))) {
+        } else if (!Array.isArray(columns) || columns.some(columnName => !this.app.mysql.validateName(columnName))) {
             return PARAM_ERROR;
         } else {
             selectColumns = columns.join(',');
         }
 
-        const rows = await this.ctx.mysql.query('select ' + selectColumns + ' from spuPropDefinition where status=1 and categoryId=@p0', [categoryId]);
+        const rows = await this.app.mysql.query('select ' + selectColumns + ' from spuPropDefinition where status=1 and categoryId=@p0', [categoryId]);
         return { success: true, code: 0, data: rows };
     }
 
@@ -66,7 +66,7 @@ class CategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        const res = await this.ctx.mysql.insert('spuPropDefinition', {
+        const res = await this.app.mysql.insert('spuPropDefinition', {
             categoryId,
             type,
             inputType,
@@ -85,7 +85,7 @@ class CategoryService extends Service {
             return PARAM_ERROR;
         }
 
-        await this.ctx.mysql.update('spuPropDefinition', {
+        await this.app.mysql.update('spuPropDefinition', {
             type,
             inputType,
             label,
