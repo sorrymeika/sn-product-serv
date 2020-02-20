@@ -155,7 +155,6 @@ create table spuDetail (
 create table sku (
     id int(14) primary key auto_increment,
     spuId int(12),
-    code varchar(20),
     status int(2), -- enum { 0: '虚拟删除', 1: '上架', 2: '新建', 3: '下架' }
     price decimal(12,2),
     kgWeight decimal(12,3),
